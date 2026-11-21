@@ -69,7 +69,7 @@ export const Layout: React.FC = () => {
           {/* National Tricolor Line */}
           <div className="h-0.5 w-full bg-gradient-to-r from-amber-500 via-white to-emerald-600" />
 
-          {/* Topbar with Integrated Demo Persona Switcher (Fixed in that place only) */}
+          {/* Topbar with Official Title & Actions */}
           <Topbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
         </div>
 
