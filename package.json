@@ -1,0 +1,35 @@
+{
+  "name": "certiflow-platform",
+  "version": "1.0.0",
+  "description": "CertiFlow - Skilling Certificate Issuance Platform",
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "build": "npm run build:backend && npm run build:frontend",
+    "test": "npm --prefix backend test",
+    "db:studio": "npm --prefix backend run db:studio",
+    "db:seed": "npm --prefix backend run db:seed",
+    "db:push": "npm --prefix backend run db:push"
+  },
+  "keywords": [
+    "certiflow",
+    "certificate-issuance",
+    "verification",
+    "government-skilling",
+    "rbac",
+    "outbox-pattern",
+    "bullmq"
+  ],
+  "author": "Google Antigravity Team",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.5"
+  },
+  "dependencies": {
+    "@neon/config": "^1.14.6",
+    "@neon/env": "^2.1.9"
+  }
+}

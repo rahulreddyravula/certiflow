@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: certiflow-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: certiflow
+      POSTGRES_PASSWORD: certiflow_secret
+      POSTGRES_DB: certiflow_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - certiflow_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U certiflow -d certiflow_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: certiflow-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - certiflow_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: certiflow-backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgresql://certiflow:certiflow_secret@postgres:5432/certiflow_db?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: certiflow_production_secret_key_2026_jwt_token_secure
+      CORS_ORIGIN: "http://localhost:80"
+      LARGE_BATCH_THRESHOLD: "50"
+      SLA_HOURS_DISTRICT: "48"
+      SLA_HOURS_STATE: "48"
+      SIMULATE_WHATSAPP_FAILURE_RATE: "0.2"
+    ports:
+      - "5000:5000"
+    volumes:
+      - certiflow_certificates:/app/storage/certificates
+    command: >
+      sh -c "npx prisma db push && npx tsx prisma/seed.ts && node dist/server.js"
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: certiflow-worker
+    restart: always
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://certiflow:certiflow_secret@postgres:5432/certiflow_db?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: certiflow_production_secret_key_2026_jwt_token_secure
+      LARGE_BATCH_THRESHOLD: "50"
+      SLA_HOURS_DISTRICT: "48"
+      SLA_HOURS_STATE: "48"
+      SIMULATE_WHATSAPP_FAILURE_RATE: "0.2"
+    volumes:
+      - certiflow_certificates:/app/storage/certificates
+    command: node dist/worker.js
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: certiflow-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  certiflow_pgdata:
+  certiflow_redisdata:
+  certiflow_certificates:

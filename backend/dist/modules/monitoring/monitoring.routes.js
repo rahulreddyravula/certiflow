@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const monitoring_controller_1 = require("./monitoring.controller");
+const auth_middleware_1 = require("../../middleware/auth.middleware");
+const router = (0, express_1.Router)();
+router.get('/dashboard-stats', auth_middleware_1.authMiddleware, monitoring_controller_1.MonitoringController.getStats);
+router.get('/delayed-batches', auth_middleware_1.authMiddleware, monitoring_controller_1.MonitoringController.getDelayedBatches);
+router.get('/audit-logs', auth_middleware_1.authMiddleware, monitoring_controller_1.MonitoringController.getAuditLogs);
+router.get('/notifications', auth_middleware_1.authMiddleware, monitoring_controller_1.MonitoringController.getNotifications);
+router.patch('/notifications/:id/read', auth_middleware_1.authMiddleware, monitoring_controller_1.MonitoringController.markNotificationRead);
+router.get('/whatsapp-logs', auth_middleware_1.authMiddleware, monitoring_controller_1.MonitoringController.getWhatsAppLogs);
+router.post('/whatsapp-logs/:id/retry', auth_middleware_1.authMiddleware, monitoring_controller_1.MonitoringController.retryWhatsApp);
+router.get('/performance', auth_middleware_1.authMiddleware, monitoring_controller_1.MonitoringController.getPerformanceMetrics);
+exports.default = router;

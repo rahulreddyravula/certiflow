@@ -1,0 +1,7 @@
+Candidate Name,Candidate Email,Phone Number,Course Name,Training Centre,District,Completion Date,Assessment Status
+,missing.name@example.com,9826011111,Solar PV Installer,Apex Skill Institute,Bhopal,2026-11-01,PASSED
+Priya Patel,not-an-email,9826011112,Solar PV Installer,Apex Skill Institute,Bhopal,2026-11-01,PASSED
+Rohan Joshi,rohan.joshi@example.com,12345,Solar PV Installer,Apex Skill Institute,Bhopal,2026-11-01,PASSED
+Sneha Kulkarni,sneha.k@example.com,9826011114,Solar PV Installer,Apex Skill Institute,Bhopal,invalid-date,PASSED
+Vikram Rajput,vikram.r@example.com,9826011115,Solar PV Installer,Apex Skill Institute,Bhopal,2026-11-01,UNKNOWN_RESULT
+Pooja Verma,priya.patel@example.com,9826011116,Solar PV Installer,Apex Skill Institute,Bhopal,2026-11-01,PASSED
