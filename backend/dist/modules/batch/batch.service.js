@@ -11,7 +11,12 @@ const cache_service_1 = require("../cache/cache.service");
 class BatchService {
     static async createBatch(data, user) {
         const count = await database_1.prisma.batch.count();
-        const batchNumber = `BATCH-2026-${String(count + 1).padStart(3, '0')}`;
+        let num = count + 1;
+        let batchNumber = `BATCH-2026-${String(num).padStart(3, '0')}`;
+        while (await database_1.prisma.batch.findUnique({ where: { batchNumber } })) {
+            num++;
+            batchNumber = `BATCH-2026-${String(num).padStart(3, '0')}`;
+        }
         const batch = await database_1.prisma.batch.create({
             data: {
                 batchNumber,
@@ -72,31 +77,34 @@ class BatchService {
                 where.districtId = user.districtId;
             }
         }
-        return await database_1.prisma.batch.findMany({
-            where,
-            include: {
-                trainingCentre: { select: { id: true, name: true, code: true } },
-                district: { select: { id: true, name: true, code: true } },
-                districtApprovals: {
-                    select: {
-                        id: true,
-                        versionNumber: true,
-                        officerId: true,
-                        officerName: true,
-                        status: true,
-                        comments: true,
-                        decidedAt: true,
+        const cacheKey = `batches:${user.role}:${user.id}:${query?.status || 'all'}:${query?.search || ''}:${query?.limit || 100}`;
+        return await cache_service_1.CacheService.wrap(cacheKey, 15, async () => {
+            return await database_1.prisma.batch.findMany({
+                where,
+                include: {
+                    trainingCentre: { select: { id: true, name: true, code: true } },
+                    district: { select: { id: true, name: true, code: true } },
+                    districtApprovals: {
+                        select: {
+                            id: true,
+                            versionNumber: true,
+                            officerId: true,
+                            officerName: true,
+                            status: true,
+                            comments: true,
+                            decidedAt: true,
+                        },
+                    },
+                    _count: {
+                        select: {
+                            candidates: true,
+                            certificates: true,
+                        },
                     },
                 },
-                _count: {
-                    select: {
-                        candidates: true,
-                        certificates: true,
-                    },
-                },
-            },
-            take: query?.limit || 100,
-            orderBy: { createdAt: 'desc' },
+                take: query?.limit || 100,
+                orderBy: { createdAt: 'desc' },
+            });
         });
     }
     static async getBatchById(id) {

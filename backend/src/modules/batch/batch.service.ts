@@ -17,7 +17,12 @@ export interface CreateBatchDto {
 export class BatchService {
   static async createBatch(data: CreateBatchDto, user: AuthUser) {
     const count = await prisma.batch.count();
-    const batchNumber = `BATCH-2026-${String(count + 1).padStart(3, '0')}`;
+    let num = count + 1;
+    let batchNumber = `BATCH-2026-${String(num).padStart(3, '0')}`;
+    while (await prisma.batch.findUnique({ where: { batchNumber } })) {
+      num++;
+      batchNumber = `BATCH-2026-${String(num).padStart(3, '0')}`;
+    }
 
     const batch = await prisma.batch.create({
       data: {
@@ -87,31 +92,35 @@ export class BatchService {
       }
     }
 
-    return await prisma.batch.findMany({
-      where,
-      include: {
-        trainingCentre: { select: { id: true, name: true, code: true } },
-        district: { select: { id: true, name: true, code: true } },
-        districtApprovals: {
-          select: {
-            id: true,
-            versionNumber: true,
-            officerId: true,
-            officerName: true,
-            status: true,
-            comments: true,
-            decidedAt: true,
+    const cacheKey = `batches:${user.role}:${user.id}:${query?.status || 'all'}:${query?.search || ''}:${query?.limit || 100}`;
+
+    return await CacheService.wrap(cacheKey, 15, async () => {
+      return await prisma.batch.findMany({
+        where,
+        include: {
+          trainingCentre: { select: { id: true, name: true, code: true } },
+          district: { select: { id: true, name: true, code: true } },
+          districtApprovals: {
+            select: {
+              id: true,
+              versionNumber: true,
+              officerId: true,
+              officerName: true,
+              status: true,
+              comments: true,
+              decidedAt: true,
+            },
+          },
+          _count: {
+            select: {
+              candidates: true,
+              certificates: true,
+            },
           },
         },
-        _count: {
-          select: {
-            candidates: true,
-            certificates: true,
-          },
-        },
-      },
-      take: query?.limit || 100,
-      orderBy: { createdAt: 'desc' },
+        take: query?.limit || 100,
+        orderBy: { createdAt: 'desc' },
+      });
     });
   }
 

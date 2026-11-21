@@ -8,6 +8,7 @@ import { ShieldAlert, Eye, CheckCircle2, AlertTriangle, Layers } from 'lucide-re
 
 export const QualityReviewPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [batches, setBatches] = useState<Batch[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,7 +36,7 @@ export const QualityReviewPage: React.FC = () => {
     };
     window.addEventListener('certiflow:update', handleUpdate);
     return () => window.removeEventListener('certiflow:update', handleUpdate);
-  }, []);
+  }, [user?.id]);
 
   return (
     <div className="space-y-6">

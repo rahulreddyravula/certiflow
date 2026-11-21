@@ -24,13 +24,24 @@ export const DashboardPage: React.FC = () => {
   const stats = data?.stats;
 
   useEffect(() => {
+    refetch();
+  }, [user?.id, user?.role, refetch]);
+
+  useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
         refetch();
       }
     };
+    const handleUpdate = () => {
+      refetch();
+    };
     document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('certiflow:update', handleUpdate);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('certiflow:update', handleUpdate);
+    };
   }, [refetch]);
 
   if (isLoading && !stats) {

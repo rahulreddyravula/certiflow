@@ -87,7 +87,7 @@ export const DemoSwitcher: React.FC = () => {
             return (
               <button
                 key={p.email}
-                disabled={isLoading || isActive}
+                disabled={isActive}
                 onClick={() => demoLogin(p.role, p.email)}
                 className={`px-2 sm:px-2.5 py-1 rounded-md font-medium text-[11px] sm:text-xs transition-all flex items-center space-x-1.5 border shrink-0 ${
                   isActive

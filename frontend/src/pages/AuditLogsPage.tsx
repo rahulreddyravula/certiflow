@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import { useAuthStore } from '../store/authStore';
 import { AuditLog } from '../types';
 import { History, Search, Filter, ShieldCheck } from 'lucide-react';
 
 export const AuditLogsPage: React.FC = () => {
+  const { user } = useAuthStore();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionFilter, setActionFilter] = useState('');
@@ -24,7 +26,7 @@ export const AuditLogsPage: React.FC = () => {
 
   useEffect(() => {
     fetchLogs();
-  }, [actionFilter]);
+  }, [actionFilter, user?.id]);
 
   return (
     <div className="space-y-6">

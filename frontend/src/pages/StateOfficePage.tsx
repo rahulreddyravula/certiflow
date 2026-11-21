@@ -18,6 +18,7 @@ import {
 
 export const StateOfficePage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [batches, setBatches] = useState<Batch[]>([]);
   const [delayedBatches, setDelayedBatches] = useState<DelayedBatchItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +56,7 @@ export const StateOfficePage: React.FC = () => {
     };
     window.addEventListener('certiflow:update', handleUpdate);
     return () => window.removeEventListener('certiflow:update', handleUpdate);
-  }, []);
+  }, [user?.id]);
 
   const handleCancelCertificate = async (e: React.FormEvent) => {
     e.preventDefault();

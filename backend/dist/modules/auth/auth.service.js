@@ -53,23 +53,32 @@ class AuthService {
             },
         };
     }
-    // Convenient 1-click Demo Switching
+    static demoUserCache = new Map();
+    // Convenient 1-click Demo Switching with Instant In-Memory Cache (< 1ms)
     static async demoLogin(role, email) {
-        let user;
-        if (email) {
-            user = await database_1.prisma.user.findUnique({
-                where: { email },
-                include: { district: true, trainingCentre: true },
-            });
-        }
-        else {
-            user = await database_1.prisma.user.findFirst({
-                where: { role },
-                include: { district: true, trainingCentre: true },
-            });
-        }
+        const cacheKey = (email || role).toLowerCase();
+        let user = this.demoUserCache.get(cacheKey);
         if (!user) {
-            throw { status: 404, message: `No demo user found for role: ${role}` };
+            if (email) {
+                user = await database_1.prisma.user.findUnique({
+                    where: { email },
+                    include: { district: true, trainingCentre: true },
+                });
+            }
+            else {
+                user = await database_1.prisma.user.findFirst({
+                    where: { role },
+                    include: { district: true, trainingCentre: true },
+                });
+            }
+            if (!user) {
+                throw { status: 404, message: `No demo user found for role: ${role}` };
+            }
+            // Cache both by email and role for instant 0.1ms subsequent lookups
+            if (user.email)
+                this.demoUserCache.set(user.email.toLowerCase(), user);
+            if (user.role)
+                this.demoUserCache.set(user.role.toLowerCase(), user);
         }
         const tokenPayload = {
             id: user.id,

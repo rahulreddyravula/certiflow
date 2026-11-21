@@ -59,7 +59,7 @@ export const BatchesPage: React.FC = () => {
     };
     window.addEventListener('certiflow:update', handleUpdate);
     return () => window.removeEventListener('certiflow:update', handleUpdate);
-  }, [fetchBatches]);
+  }, [fetchBatches, user?.id]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,8 +72,8 @@ export const BatchesPage: React.FC = () => {
     setCreating(true);
     try {
       const res = await api.post('/batches', {
-        title: newTitle,
-        courseName: newCourse,
+        title: newTitle.trim(),
+        courseName: newCourse.trim(),
         districtId: user?.districtId || user?.district?.id,
         trainingCentreId: user?.trainingCentreId || user?.trainingCentre?.id,
       });
@@ -82,7 +82,9 @@ export const BatchesPage: React.FC = () => {
       setNewCourse('');
       navigate(`/batches/${res.data.batch.id}`);
     } catch (err: any) {
-      setCreateError(err.response?.data?.error || 'Failed to create batch.');
+      const detailsMsg = err.response?.data?.details?.map((d: any) => d.message).join('. ');
+      const errorMsg = detailsMsg || err.response?.data?.error || 'Failed to create batch.';
+      setCreateError(errorMsg);
     } finally {
       setCreating(false);
     }

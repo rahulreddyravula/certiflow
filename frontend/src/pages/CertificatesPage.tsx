@@ -45,7 +45,7 @@ export const CertificatesPage: React.FC = () => {
     };
     window.addEventListener('certiflow:update', handleUpdate);
     return () => window.removeEventListener('certiflow:update', handleUpdate);
-  }, [fetchCertificates]);
+  }, [fetchCertificates, user?.id]);
 
   const handleDownload = (certNum: string) => {
     window.open(`/api/certificates/${certNum}/download`, '_blank');

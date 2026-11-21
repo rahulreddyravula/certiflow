@@ -57,7 +57,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
             return (
               <button
                 key={p.email}
-                disabled={isLoading || isActive}
+                disabled={isActive}
                 onClick={() => demoLogin(p.role, p.email)}
                 className={`px-2 py-1 rounded-lg text-xs transition-all flex items-center space-x-1 shrink-0 ${
                   isActive

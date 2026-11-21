@@ -36,7 +36,7 @@ export const DistrictApprovalPage: React.FC = () => {
     };
     window.addEventListener('certiflow:update', handleUpdate);
     return () => window.removeEventListener('certiflow:update', handleUpdate);
-  }, []);
+  }, [user?.id]);
 
   return (
     <div className="space-y-6">

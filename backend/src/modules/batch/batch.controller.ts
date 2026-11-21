@@ -3,12 +3,13 @@ import { z } from 'zod';
 import * as XLSX from 'xlsx';
 import { BatchService } from './batch.service';
 import { ApprovalService } from '../approval/approval.service';
+import { prisma } from '../../database';
 
 const createBatchSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters'),
-  courseName: z.string().min(3, 'Course name is required'),
-  districtId: z.string().min(1, 'District is required'),
-  trainingCentreId: z.string().min(1, 'Training centre is required'),
+  title: z.string().min(1, 'Title is required').trim(),
+  courseName: z.string().min(1, 'Course name is required').trim(),
+  districtId: z.string().optional(),
+  trainingCentreId: z.string().optional(),
 });
 
 const decisionSchema = z.object({
@@ -24,7 +25,45 @@ export class BatchController {
   static async create(req: Request, res: Response, next: NextFunction) {
     try {
       const data = createBatchSchema.parse(req.body);
-      const batch = await BatchService.createBatch(data, req.user!);
+      const user = req.user!;
+
+      let districtId = data.districtId || user.districtId;
+      let trainingCentreId = data.trainingCentreId || user.trainingCentreId;
+
+      // If missing from token, fallback to fetching from DB for this user
+      if (!trainingCentreId || !districtId) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          include: { district: true, trainingCentre: true },
+        });
+        if (dbUser) {
+          districtId = districtId || dbUser.districtId || dbUser.district?.id;
+          trainingCentreId = trainingCentreId || dbUser.trainingCentreId || dbUser.trainingCentre?.id;
+        }
+      }
+
+      // If training centre is known, guarantee districtId from the training centre
+      if (!districtId && trainingCentreId) {
+        const tc = await prisma.trainingCentre.findUnique({ where: { id: trainingCentreId } });
+        if (tc) districtId = tc.districtId;
+      }
+
+      if (!trainingCentreId) {
+        return res.status(400).json({ success: false, error: 'A Training Centre association is required to create a batch.' });
+      }
+      if (!districtId) {
+        return res.status(400).json({ success: false, error: 'A District association is required to create a batch.' });
+      }
+
+      const batch = await BatchService.createBatch(
+        {
+          title: data.title,
+          courseName: data.courseName,
+          districtId,
+          trainingCentreId,
+        },
+        user
+      );
       res.status(201).json({ success: true, batch });
     } catch (error) {
       next(error);

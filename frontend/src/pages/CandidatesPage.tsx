@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { api } from '../api/client';
+import { useAuthStore } from '../store/authStore';
 import { Candidate } from '../types';
 import { useDebounce } from '../hooks/useDebounce';
 import { Users, Search, CheckCircle2, XCircle, Award } from 'lucide-react';
 
 export const CandidatesPage: React.FC = () => {
+  const { user } = useAuthStore();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -33,7 +35,7 @@ export const CandidatesPage: React.FC = () => {
 
   useEffect(() => {
     fetchCandidates();
-  }, [fetchCandidates]);
+  }, [fetchCandidates, user?.id]);
 
   return (
     <div className="space-y-6">
